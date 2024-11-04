@@ -1,6 +1,9 @@
+// login_state.dart
 import 'package:equatable/equatable.dart';
 
 abstract class LoginState extends Equatable {
+  const LoginState();
+
   @override
   List<Object?> get props => [];
 }
@@ -10,19 +13,19 @@ class LoginInitial extends LoginState {}
 class LoginLoading extends LoginState {}
 
 class LoginSuccess extends LoginState {
-  final String username;
+  final String token;
 
-  LoginSuccess({required this.username});
+  const LoginSuccess(this.token);
 
   @override
-  List<Object?> get props => [username];
+  List<Object?> get props => [token];
 }
 
 class LoginFailure extends LoginState {
-  final String error;
+  final String message;
 
-  LoginFailure({required this.error});
+  const LoginFailure(this.message);
 
   @override
-  List<Object?> get props => [error];
+  List<Object?> get props => [message];
 }

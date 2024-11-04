@@ -1,6 +1,9 @@
+// login_event.dart
 import 'package:equatable/equatable.dart';
 
 abstract class LoginEvent extends Equatable {
+  const LoginEvent();
+
   @override
   List<Object?> get props => [];
 }
@@ -18,7 +21,7 @@ class LoginSubmitted extends LoginEvent {
   final String tokenPush;
   final String sodinhdanh;
 
-  LoginSubmitted({
+  const LoginSubmitted({
     required this.userName,
     required this.passWord,
     required this.requestId,
@@ -31,6 +34,9 @@ class LoginSubmitted extends LoginEvent {
     required this.tokenPush,
     required this.sodinhdanh,
   });
+
   @override
-  List<Object?> get props => [userName, passWord];
+  List<Object?> get props => [userName, passWord, requestId, otpNo, version, operatingSystem, token, deviceId, code, tokenPush, sodinhdanh];
 }
+
+class LogoutRequested extends LoginEvent {}
