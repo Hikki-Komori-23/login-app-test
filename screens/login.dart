@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:login_app_2/bloc/login_bloc.dart';
 import 'package:login_app_2/bloc/login_event.dart';
 import 'package:login_app_2/bloc/login_state.dart';
+import 'package:login_app_2/models/authentication_model.dart';
 import 'package:login_app_2/screens/forgotpassword.dart';
 import 'package:login_app_2/screens/forgotusername.dart';
 import 'package:login_app_2/screens/home.dart';
@@ -60,39 +61,27 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      _showLoadingDialog(); 
+void _submit() {
+  if (_formKey.currentState!.validate()) {
+    _showLoadingDialog(); 
 
-      const requestId = "20231103121111";
-      final userName = taxCodeController.text;
-      final passWord = passwordController.text;
-      const otpNo = "";
-      const version = "1.0";
-      const operatingSystem = "android";
-      const token = "";
-      const deviceId = "Android SDK built for x86";
-      const code = "";
-      const tokenPush = "cznYpkvbTHO-jK-yN-72-c:APA91bE_Mz_R-GJ424T7_sIAgcYD1YMRrfu4HUj3AqPdMQHVUE3yhr-7fmhRq3UdlUDb-ky56HiEtzSBtmDU-LRlElaz6HQeiuILbiwspF1E81pbu1ykrvBXtO1ofczx7OuNbu34tYjx";
-      const sodinhdanh = "";
+    final authenticationModel = Authentication(
+      requestId: "20231103121111",
+      userName: taxCodeController.text,
+      passWord: passwordController.text,
+      otpNo: "",
+      version: "1.0",
+      operatingSystem: "android",
+      token: "",
+      deviceId: "Android SDK built for x86",
+      code: "",
+      tokenPush: "cznYpkvbTHO-jK-yN-72-c:APA91bE_Mz_R-GJ424T7_sIAgcYD1YMRrfu4HUj3AqPdMQHVUE3yhr-7fmhRq3UdlUDb-ky56HiEtzSBtmDU-LRlElaz6HQeiuILbiwspF1E81pbu1ykrvBXtO1ofczx7OuNbu34tYjx",
+      sodinhdanh: "",
+    );
 
-      BlocProvider.of<LoginBloc>(context).add(
-        LoginSubmitted(
-          userName: userName,
-          passWord: passWord,
-          requestId: requestId,
-          otpNo: otpNo,
-          version: version,
-          operatingSystem: operatingSystem,
-          token: token,
-          deviceId: deviceId,
-          code: code,
-          tokenPush: tokenPush,
-          sodinhdanh: sodinhdanh,
-        ),
-      );
-    }
+    BlocProvider.of<LoginBloc>(context).add(LoginSubmitted(authenticationModel));
   }
+}
 
   @override
   Widget build(BuildContext context) {

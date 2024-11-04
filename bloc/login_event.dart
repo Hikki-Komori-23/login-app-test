@@ -1,5 +1,6 @@
 // login_event.dart
 import 'package:equatable/equatable.dart';
+import 'package:login_app_2/models/authentication_model.dart';
 
 abstract class LoginEvent extends Equatable {
   const LoginEvent();
@@ -9,34 +10,9 @@ abstract class LoginEvent extends Equatable {
 }
 
 class LoginSubmitted extends LoginEvent {
-  final String userName;
-  final String passWord;
-  final String requestId;
-  final String otpNo;
-  final String version;
-  final String operatingSystem;
-  final String token;
-  final String deviceId;
-  final String code;
-  final String tokenPush;
-  final String sodinhdanh;
+  final Authentication authentication;
 
-  const LoginSubmitted({
-    required this.userName,
-    required this.passWord,
-    required this.requestId,
-    required this.otpNo,
-    required this.version,
-    required this.operatingSystem,
-    required this.token,
-    required this.deviceId,
-    required this.code,
-    required this.tokenPush,
-    required this.sodinhdanh,
-  });
-
-  @override
-  List<Object?> get props => [userName, passWord, requestId, otpNo, version, operatingSystem, token, deviceId, code, tokenPush, sodinhdanh];
+  const LoginSubmitted(this.authentication);
 }
 
 class LogoutRequested extends LoginEvent {}
