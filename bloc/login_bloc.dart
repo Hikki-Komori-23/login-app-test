@@ -67,7 +67,9 @@ Future<void> _onLoginSubmitted(LoginSubmitted event, Emitter<LoginState> emit) a
         return 'Đã đăng nhập ở một thiết bị khác.';
       case 'AUTH18':
         return 'Mã số thuế không hợp lệ.';
-      default:
+      case 'ERROR500':
+        return 'Lỗi hệ thống.';
+      default :
         return 'Lỗi không xác định.';
     }
   }
