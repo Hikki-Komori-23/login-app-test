@@ -15,41 +15,41 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<LogoutRequested>(_onLogoutRequested);
   }
 
-Future<void> _onLoginSubmitted(LoginSubmitted event, Emitter<LoginState> emit) async {
-  emit(LoginLoading());
-  final url = Uri.parse('$baseUrl/login');
+  Future<void> _onLoginSubmitted(LoginSubmitted event, Emitter<LoginState> emit) async {
+    emit(LoginLoading());
+    final url = Uri.parse('$baseUrl/login');
 
-  try {
-    final body = jsonEncode(event.authentication.toJson());
+    try {
+      final body = jsonEncode(event.authentication.toJson());
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: body,
-    );
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
 
-    final data = jsonDecode(response.body);
-    final loginResponse = loginResponseFromJson(data);
+      final data = jsonDecode(response.body);
+      final loginResponse = loginResponseFromJson(data);
 
-    if (loginResponse.responseCode == 'AUTH00' && loginResponse.token != null) {
-      final prefs = await SharedPreferences.getInstance();
+      if (loginResponse.responseCode == 'AUTH00' && loginResponse.token != null) {
+        final prefs = await SharedPreferences.getInstance();
 
-      bool isFirstLogin = prefs.getBool('is_first_login') ?? true;
-      if (!isFirstLogin) {
-        await prefs.setString('auth_token', loginResponse.token!);
+        bool isFirstLogin = prefs.getBool('is_first_login') ?? true;
+        if (!isFirstLogin) {
+          await prefs.setString('auth_token', loginResponse.token!);
+        }
+        
+        await prefs.setBool('is_first_login', false);
+
+        emit(LoginSuccess(loginResponse.token!));
+      } else {
+        final responseCode = loginResponse.responseCode ?? 'UNKNOWN';
+        emit(LoginFailure('Login failed: ${getAuthCodeMessage(responseCode)}'));
       }
-      
-      await prefs.setBool('is_first_login', false);
-
-      emit(LoginSuccess(loginResponse.token!));
-    } else {
-      final responseCode = loginResponse.responseCode ?? 'UNKNOWN';
-      emit(LoginFailure('Login failed: ${getAuthCodeMessage(responseCode)}'));
+    } catch (e) {
+      emit(LoginFailure('Error: ${e.toString()}'));
     }
-  } catch (e) {
-    emit(LoginFailure('Error: ${e.toString()}'));
   }
-}
 
   String getAuthCodeMessage(String responseCode) {
     switch (responseCode) {
@@ -58,7 +58,7 @@ Future<void> _onLoginSubmitted(LoginSubmitted event, Emitter<LoginState> emit) a
       case 'AUTH02':
         return 'Không tìm thấy thông tin khách hàng.';
       case 'AUTH06':
-        return 'Tài khoản chưa đăng kí dịch vụ.';
+        return 'Tài khoản chưa đăng ký dịch vụ.';
       case 'AUTH13':
         return 'Lỗi OTP.';
       case 'AUTH15':
