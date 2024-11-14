@@ -24,9 +24,7 @@ class LoadingDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Dialog(
       backgroundColor: Colors.transparent,
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
+      child: Center(child: CircularProgressIndicator()),
     );
   }
 }
@@ -45,29 +43,21 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _togglePasswordView() {
-    setState(() {
-      _showPassword = !_showPassword;
-    });
-  }
+  void _togglePasswordView() => setState(() => _showPassword = !_showPassword);
 
   void _showLoadingDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const LoadingDialog();
-      },
+      builder: (BuildContext context) => const LoadingDialog(),
     );
   }
 
-  void _closeLoadingDialog() {
-    Navigator.of(context, rootNavigator: true).pop();
-  }
+  void _closeLoadingDialog() => Navigator.of(context, rootNavigator: true).pop();
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      _showLoadingDialog(); 
+      _showLoadingDialog();
 
       final authenticationModel = Authentication(
         requestId: "20231103121111",
@@ -85,6 +75,116 @@ class _LoginScreenState extends State<LoginScreen> {
 
       BlocProvider.of<LoginBloc>(context).add(LoginSubmitted(authenticationModel));
     }
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required IconData prefixIcon,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    required String? Function(String?) validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      decoration: InputDecoration(
+        prefixIcon: Icon(prefixIcon, color: Colors.white),
+        hintText: hintText,
+        filled: true,
+        fillColor: Colors.black.withOpacity(0.5),
+        hintStyle: const TextStyle(color: Colors.white),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        suffixIcon: suffixIcon,
+      ),
+      style: const TextStyle(color: Colors.white),
+      validator: validator,
+    );
+  }
+
+  Widget _buildForgotPasswordButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        TextButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ForgotUsernameScreen()),
+          ),
+          child: const Text('Quên mã số thuế?', style: TextStyle(color: Colors.yellow)),
+        ),
+        TextButton(
+          onPressed: () async {
+            final newPassword = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+            );
+            if (newPassword != null) {
+              setState(() => passwordController.text = newPassword);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Mật khẩu đã được cập nhật. Vui lòng đăng nhập lại.'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          },
+          child: const Text('Quên mật khẩu?', style: TextStyle(color: Colors.yellow)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoginButton() {
+    return SizedBox(
+      width: 250,
+      child: ElevatedButton(
+        onPressed: _submit,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
+        child: const Text('Đăng nhập', style: TextStyle(fontSize: 18, color: Colors.white)),
+      ),
+    );
+  }
+
+  Widget _buildFingerprintButton() {
+    return IconButton(
+      iconSize: 40,
+      onPressed: () {},
+      icon: const Icon(Icons.fingerprint, color: Colors.white),
+      tooltip: 'Xác thực bằng vân tay',
+    );
+  }
+
+  Widget _buildVneidLoginButton() {
+    return ElevatedButton(
+      onPressed: () {},
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Expanded(
+            child: Text(
+              'Đăng nhập bằng tài khoản Định danh điện tử',
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Image.asset('assets/images/vneid.jpg', width: 50, height: 50),
+        ],
+      ),
+    );
   }
 
   @override
@@ -112,212 +212,60 @@ class _LoginScreenState extends State<LoginScreen> {
                   } else if (state is LoginFailure) {
                     _closeLoadingDialog();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.message),
-                        backgroundColor: Colors.red,
-                      ),
+                      SnackBar(content: Text(state.message), backgroundColor: Colors.red),
                     );
                   }
                 },
                 builder: (context, state) {
                   return Column(
-                    children: [                      
-                      Image.asset(
-                        'assets/images/thuenhanuoc.jpg',
-                        width: 120,
-                        height: 120,
-                      ),
+                    children: [
+                      Image.asset('assets/images/thuenhanuoc.jpg', width: 120, height: 120),
                       const SizedBox(height: 16),
-                      const Text(
-                        'eTax Mobile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      const Text('eTax Mobile', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 20),
                       Form(
                         key: _formKey,
                         child: Column(
                           children: [
-                            TextFormField(
+                            _buildTextField(
                               controller: taxCodeController,
-                              decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.person, color: Colors.white),
-                                hintText: 'Mã số thuế *',
-                                filled: true,
-                                fillColor: Colors.black.withOpacity(0.5),
-                                hintStyle: const TextStyle(color: Colors.white),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                              style: const TextStyle(color: Colors.white),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Vui lòng nhập mã số thuế';
-                                }
-                                return null;
-                              },
+                              hintText: 'Mã số thuế *',
+                              prefixIcon: Icons.person,
+                              validator: (value) => value == null || value.isEmpty ? 'Vui lòng nhập mã số thuế' : null,
                             ),
                             const SizedBox(height: 16),
-                            TextFormField(
+                            _buildTextField(
                               controller: passwordController,
+                              hintText: 'Mật khẩu *',
+                              prefixIcon: Icons.lock,
                               obscureText: !_showPassword,
-                              decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.lock, color: Colors.white),
-                                hintText: 'Mật khẩu *',
-                                filled: true,
-                                fillColor: Colors.black.withOpacity(0.5),
-                                hintStyle: const TextStyle(color: Colors.white),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide.none,
-                                ),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _showPassword ? Icons.visibility : Icons.visibility_off,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: _togglePasswordView,
-                                ),
+                              suffixIcon: IconButton(
+                                icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off, color: Colors.white),
+                                onPressed: _togglePasswordView,
                               ),
-                              style: const TextStyle(color: Colors.white),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Vui lòng nhập mật khẩu';
-                                }
-                                return null;
-                              },
+                              validator: (value) => value == null || value.isEmpty ? 'Vui lòng nhập mật khẩu' : null,
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ForgotUsernameScreen(),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Quên mã số thuế?',
-                              style: TextStyle(color: Colors.yellow),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              final newPassword = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ForgotPasswordScreen(),
-                                ),
-                              );
-                              if (newPassword != null) {
-                                setState(() {
-                                  passwordController.text = newPassword;
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Mật khẩu đã được cập nhật. Vui lòng đăng nhập lại.'),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              }
-                            },
-                            child: const Text(
-                              'Quên mật khẩu?',
-                              style: TextStyle(color: Colors.yellow),
-                            ),
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 16),
+                      _buildForgotPasswordButtons(),
                       const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 250,
-                            child: state is LoginLoading
-                                ? const CircularProgressIndicator()
-                                : ElevatedButton(
-                                    onPressed: _submit,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      padding: const EdgeInsets.symmetric(vertical: 20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Đăng nhập',
-                                      style: TextStyle(fontSize: 18, color: Colors.white),
-                                    ),
-                                  ),
-                          ),
-                          const SizedBox(width: 18),
-                          IconButton(
-                            iconSize: 40,
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.fingerprint,
-                              color: Colors.white,
-                            ),
-                            tooltip: 'Xác thực bằng vân tay',
-                          ),
-                        ],
-                      ),
+                      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        _buildLoginButton(),
+                        const SizedBox(width: 18),
+                        _buildFingerprintButton(),
+                      ]),
                       const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          textStyle: const TextStyle(fontSize: 18),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Expanded(
-                              child: Text(
-                                'Đăng nhập bằng tài khoản Định danh điện tử',
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Image.asset(
-                              'assets/images/vneid.jpg',
-                              width: 50,
-                              height: 50,
-                            ),
-                          ],
-                        ),
-                      ),
+                      _buildVneidLoginButton(),
                       const SizedBox(height: 30),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            'Bạn chưa có tài khoản?',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          const Text('Bạn chưa có tài khoản?', style: TextStyle(color: Colors.white)),
                           TextButton(
                             onPressed: () {},
-                            child: const Text(
-                              'Đăng ký ngay',
-                              style: TextStyle(color: Colors.yellow),
-                            ),
+                            child: const Text('Đăng ký ngay', style: TextStyle(color: Colors.yellow)),
                           ),
                         ],
                       ),

@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:login_app_2/screens/home.dart';
+import 'package:login_app_2/service/api_service.dart';
 
 class TaxCodeLookUpScreen extends StatefulWidget {
   const TaxCodeLookUpScreen({super.key});
@@ -12,6 +11,7 @@ class TaxCodeLookUpScreen extends StatefulWidget {
 }
 
 class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
+  final ApiService apiService = ApiService();
   final _documentTypeController = TextEditingController();
   final _documentNumberController = TextEditingController();
   final _captchaController = TextEditingController();
@@ -23,7 +23,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
   @override
   void initState() {
     super.initState();
-    _generateCaptcha(); 
+    _generateCaptcha();
   }
 
   void _generateCaptcha() {
@@ -37,7 +37,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
   Future<void> _lookupTaxCode() async {
     if (_captchaController.text != generatedCaptcha) {
       setState(() {
-        taxCodeResult = 'Mã kiểm tra không đúng';
+        taxCodeResult = 'Mã kiểm tra không đúng.';
         taxpayerName = null;
       });
       return;
@@ -49,35 +49,17 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
       taxpayerName = null;
     });
 
-    final documentType = _documentTypeController.text;
-    final documentNumber = _documentNumberController.text;
-    final captcha = _captchaController.text;
-
-    final url = Uri.parse('https://daotaothuedientu.gdt.gov.vn/ICanhanMobile2/api/lookupTinGip');
-
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'document_type': documentType,
-          'document_number': documentNumber,
-          'captcha': captcha,
-        }),
+      final data = await apiService.lookupTaxCode(
+        documentType: _documentTypeController.text,
+        documentNumber: _documentNumberController.text,
+        captcha: _captchaController.text,
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          taxCodeResult = data['tax_code'];
-          taxpayerName = data['taxpayer_name'];
-        });
-      } else {
-        setState(() {
-          taxCodeResult = 'Không tìm thấy kết quả';
-          taxpayerName = null;
-        });
-      }
+      setState(() {
+        taxCodeResult = data?['tax_code'] ?? 'Không tìm thấy kết quả.';
+        taxpayerName = data?['taxpayer_name'];
+      });
     } catch (e) {
       setState(() {
         taxCodeResult = 'Lỗi kết nối. Vui lòng thử lại.';
@@ -86,7 +68,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
     } finally {
       setState(() {
         isLoading = false;
-        _generateCaptcha(); 
+        _generateCaptcha();
       });
     }
   }
@@ -104,7 +86,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(1000, 155, 0, 0),
-        title: const Text("Tra cứu mã số thuế"),
+        title: const Text('Tra cứu mã số thuế'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -113,18 +95,18 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(
-                labelText: "Loại giấy tờ",
+                labelText: 'Loại giấy tờ',
                 border: OutlineInputBorder(),
               ),
               items: const [
-                DropdownMenuItem(value: "cccd", child: Text("Căn cước công dân")),
-                DropdownMenuItem(value: "cmnd", child: Text("Chứng minh nhân dân")),
+                DropdownMenuItem(value: 'cccd', child: Text('Căn cước công dân')),
+                DropdownMenuItem(value: 'cmnd', child: Text('Chứng minh nhân dân')),
               ],
               onChanged: (value) {
                 _documentTypeController.text = value ?? '';
@@ -134,7 +116,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
             TextFormField(
               controller: _documentNumberController,
               decoration: const InputDecoration(
-                labelText: "Số giấy tờ",
+                labelText: 'Số giấy tờ',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -145,7 +127,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
                   child: TextFormField(
                     controller: _captchaController,
                     decoration: const InputDecoration(
-                      labelText: "Mã kiểm tra",
+                      labelText: 'Mã kiểm tra',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -176,7 +158,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
-                  foregroundColor: Colors.black12,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
@@ -185,7 +167,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
                 onPressed: isLoading ? null : _lookupTaxCode,
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Tra cứu", style: TextStyle(fontSize: 18)),
+                    : const Text('Tra cứu', style: TextStyle(fontSize: 18)),
               ),
             ),
             const SizedBox(height: 24),
@@ -200,7 +182,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Mã số thuế",
+                      'Mã số thuế',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -219,7 +201,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
                     if (taxpayerName != null) ...[
                       const SizedBox(height: 16),
                       Text(
-                        "Tên người nộp thuế: $taxpayerName",
+                        'Tên người nộp thuế: $taxpayerName',
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ],
