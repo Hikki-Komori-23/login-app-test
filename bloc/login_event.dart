@@ -15,6 +15,11 @@ class LoginSubmitted extends LoginEvent {
   const LoginSubmitted(this.authentication);
 }
 
+class OtpSubmitted extends LoginEvent {
+  final String otp;
+  const OtpSubmitted(this.otp);
+}
+
 class LogoutRequested extends LoginEvent {}
 
 class CloseLoadingRequested extends LoginEvent {}

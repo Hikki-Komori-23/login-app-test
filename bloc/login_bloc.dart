@@ -1,60 +1,99 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:login_app_2/service/api_service.dart';
 import 'login_event.dart';
 import 'login_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import 'package:login_app_2/models/login_response_model.dart'; 
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final ApiService apiService = ApiService();
+  String? temporaryToken;
 
-  LoginBloc(super.initialState);
+  LoginBloc(super.initialState) {
+    on<LoginSubmitted>(_onLoginSubmitted);
+    on<OtpSubmitted>(_onOtpSubmitted);
+    on<CloseLoadingRequested>(_onCloseLoadingRequested);
+    on<LogoutRequested>(_onLogoutRequested);
+  }
 
   Future<void> _onLoginSubmitted(LoginSubmitted event, Emitter<LoginState> emit) async {
     emit(LoginLoading());
 
     try {
       final response = await apiService.postRequest(
-        'login', 
+        'login',
         event.authentication.toJson(),
       );
 
       final data = jsonDecode(response.body);
       final loginResponse = loginResponseFromJson(data);
 
-      _handleLoginResponse(loginResponse, emit);
+      await _handleLoginResponse(loginResponse, emit);
     } catch (e) {
       emit(LoginFailure('Error: ${e.toString()}'));
     }
   }
 
-  void _handleLoginResponse(LoginResponse loginResponse, Emitter<LoginState> emit) async {
+  Future<void> _handleLoginResponse(LoginResponse loginResponse, Emitter<LoginState> emit) async {
     final responseCode = loginResponse.responseCode ?? 'UNKNOWN';
 
     if (responseCode == 'AUTH00' && loginResponse.token != null) {
       final prefs = await SharedPreferences.getInstance();
-
       bool isFirstLogin = prefs.getBool('is_first_login') ?? true;
-      if (!isFirstLogin) {
-        await prefs.setString('auth_token', loginResponse.token!);
-        await prefs.setString('login_response', jsonEncode(loginResponse.toJson()));
-        if (loginResponse.userName != null) {
-          await prefs.setString('ma_so_thue', loginResponse.userName!);
-        }
+
+      if (isFirstLogin) {
+        temporaryToken = loginResponse.token;
+        emit(LoginOtpRequired());
+      } else {
+        await _saveLoginData(prefs, loginResponse);
+        emit(LoginSuccess(loginResponse.token!));
       }
-
-      await prefs.setBool('is_first_login', false);
-
-      emit(LoginSuccess(loginResponse.token!));
     } else {
       emit(LoginFailure('Login failed: ${getAuthCodeMessage(responseCode)}'));
     }
   }
 
+  Future<void> _saveLoginData(SharedPreferences prefs, LoginResponse loginResponse) async {
+    await prefs.setString('auth_token', loginResponse.token!);
+    await prefs.setString('login_response', jsonEncode(loginResponse.toJson()));
+    if (loginResponse.userName != null) {
+      await prefs.setString('ma_so_thue', loginResponse.userName!);
+    }
+    await prefs.setBool('is_first_login', false);
+  }
+
+  Future<void> _onOtpSubmitted(OtpSubmitted event, Emitter<LoginState> emit) async {
+    emit(LoginLoading());
+
+    try {
+      final response = await apiService.postRequest(
+        'verify_otp',
+        {'otp': event.otp, 'token': temporaryToken},
+      );
+
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'success') {
+        final prefs = await SharedPreferences.getInstance();
+        await _saveLoginData(prefs, LoginResponse(token: temporaryToken));
+        emit(LoginSuccess(temporaryToken!));
+      } else {
+        emit(const LoginFailure('OTP không hợp lệ. Vui lòng thử lại.'));
+      }
+    } catch (e) {
+      emit(LoginFailure('Error: ${e.toString()}'));
+    }
+  }
+
   void _onCloseLoadingRequested(CloseLoadingRequested event, Emitter<LoginState> emit) {
-    emit(LoginInitial());  
+    emit(LoginInitial());
+  }
+
+  Future<void> _onLogoutRequested(LogoutRequested event, Emitter<LoginState> emit) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+    emit(LoginInitial());
   }
 
   String getAuthCodeMessage(String responseCode) {
@@ -78,12 +117,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       default:
         return 'Lỗi không xác định.';
     }
-  }
-
-  Future<void> _onLogoutRequested(LogoutRequested event, Emitter<LoginState> emit) async {
-     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    emit(LoginInitial());
   }
 
   Future<String?> getToken() async {

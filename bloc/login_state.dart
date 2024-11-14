@@ -12,20 +12,14 @@ class LoginInitial extends LoginState {}
 
 class LoginLoading extends LoginState {}
 
+class LoginOtpRequired extends LoginState {}
+
 class LoginSuccess extends LoginState {
   final String token;
-
   const LoginSuccess(this.token);
-
-  @override
-  List<Object?> get props => [token];
 }
 
 class LoginFailure extends LoginState {
   final String message;
-
   const LoginFailure(this.message);
-
-  @override
-  List<Object?> get props => [message];
 }
