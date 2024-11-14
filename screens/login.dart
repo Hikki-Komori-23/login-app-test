@@ -61,27 +61,31 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-void _submit() {
-  if (_formKey.currentState!.validate()) {
-    _showLoadingDialog(); 
-
-    final authenticationModel = Authentication(
-      requestId: "20231103121111",
-      userName: taxCodeController.text,
-      passWord: passwordController.text,
-      otpNo: "",
-      version: "1.0",
-      operatingSystem: "android",
-      token: "",
-      deviceId: "Android SDK built for x86",
-      code: "",
-      tokenPush: "cznYpkvbTHO-jK-yN-72-c:APA91bE_Mz_R-GJ424T7_sIAgcYD1YMRrfu4HUj3AqPdMQHVUE3yhr-7fmhRq3UdlUDb-ky56HiEtzSBtmDU-LRlElaz6HQeiuILbiwspF1E81pbu1ykrvBXtO1ofczx7OuNbu34tYjx",
-      sodinhdanh: "",
-    );
-
-    BlocProvider.of<LoginBloc>(context).add(LoginSubmitted(authenticationModel));
+  void _closeLoadingDialog() {
+    Navigator.of(context, rootNavigator: true).pop();
   }
-}
+
+  void _submit() {
+    if (_formKey.currentState!.validate()) {
+      _showLoadingDialog(); 
+
+      final authenticationModel = Authentication(
+        requestId: "20231103121111",
+        userName: taxCodeController.text,
+        passWord: passwordController.text,
+        otpNo: "",
+        version: "1.0",
+        operatingSystem: "android",
+        token: "",
+        deviceId: "Android SDK built for x86",
+        code: "",
+        tokenPush: "cznYpkvbTHO-jK-yN-72-c:APA91bE_Mz_R-GJ424T7_sIAgcYD1YMRrfu4HUj3AqPdMQHVUE3yhr-7fmhRq3UdlUDb-ky56HiEtzSBtmDU-LRlElaz6HQeiuILbiwspF1E81pbu1ykrvBXtO1ofczx7OuNbu34tYjx",
+        sodinhdanh: "",
+      );
+
+      BlocProvider.of<LoginBloc>(context).add(LoginSubmitted(authenticationModel));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,13 +104,13 @@ void _submit() {
               child: BlocConsumer<LoginBloc, LoginState>(
                 listener: (context, state) {
                   if (state is LoginSuccess) {
-                    Navigator.pop(context);
+                    _closeLoadingDialog();
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => const HomeScreen()),
                     );
                   } else if (state is LoginFailure) {
-                    Navigator.pop(context); 
+                    _closeLoadingDialog();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(state.message),
@@ -117,7 +121,7 @@ void _submit() {
                 },
                 builder: (context, state) {
                   return Column(
-                    children: [
+                    children: [                      
                       Image.asset(
                         'assets/images/thuenhanuoc.jpg',
                         width: 120,

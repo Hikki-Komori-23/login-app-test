@@ -3,6 +3,7 @@ import 'package:login_app_2/screens/forgotpassword.dart';
 import 'package:login_app_2/screens/login.dart';
 import 'package:login_app_2/screens/menu.dart';
 import 'package:login_app_2/screens/qrscanner.dart';
+import 'package:login_app_2/screens/taxcodelookup.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -95,6 +96,14 @@ class HomeScreen extends StatelessWidget {
                       FunctionButton(icon: Icons.receipt, label: 'Tra cứu biên lai', onPressed: () {}),
                       FunctionButton(icon: Icons.payment, label: 'Nộp khác', onPressed: () {}),
                       FunctionButton(icon: Icons.history, label: 'Lịch sử nộp thuế', onPressed: () {}),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      FunctionButton(icon: Icons.person_search, label: 'Tra cứu mã số thuế', onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const TaxCodeLookUpScreen()));
+                      }),
                     ],
                   ),
                 ],

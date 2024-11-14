@@ -1,12 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:login_app_2/screens/payment.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
-import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart'; 
 import 'package:qr_code_tools/qr_code_tools.dart';
+import 'package:login_app_2/service/api_service.dart'; 
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -21,6 +20,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   bool isFlashOn = false;
   String? qrCode;
   String? errorMessage;
+
+  final ApiService _apiService = ApiService();
 
   Future<void> _scanQRCode() async {
     var status = await Permission.camera.status;
@@ -48,52 +49,38 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     }
   }
   
-  Future<void> _sendQRCodeToAPI(String qrCode) async {
-    const String apiUrl = 'https://daotaothuedientu.gdt.gov.vn/ICanhanMobile2/api/readCtuQrCodeAPI'; 
-    try {
-      var response = await http.post(
-        Uri.parse(apiUrl),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'qrCode': qrCode,
-        }),
-      );
-      
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        
-        if (jsonResponse != null && jsonResponse['success']) {
-          String userName = jsonResponse['userName'] ?? 'N/A';
-          String taxId = jsonResponse['taxId'] ?? 'N/A';
-          String referenceId = jsonResponse['referenceId'] ?? 'N/A';
-          double totalAmount = jsonResponse['totalAmount'] != null ? double.tryParse(jsonResponse['totalAmount'].toString()) ?? 0.0 : 0.0;
+Future<void> _sendQRCodeToAPI(String qrCode) async {
+  try {
+    final jsonResponse = await _apiService.sendQRCode(qrCode); 
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PaymentScreen(
-                userName: userName,
-                taxId: taxId,
-                referenceId: referenceId,
-                totalAmount: totalAmount,
-              ),
-            ),
-          );
-        } else {
-          String errorMsg = jsonResponse != null && jsonResponse['message'] != null
-              ? jsonResponse['message']
-              : 'Không thể xử lý mã QR. Vui lòng thử lại.';
-          _showErrorDialog('Lỗi', errorMsg);
-        }
-      } else {
-        _showErrorDialog('Lỗi', 'Gửi mã QR thất bại. Mã lỗi HTTP: ${response.statusCode}. Vui lòng thử lại.');
-      }
-    } catch (e) {
-      _showErrorDialog('Lỗi', 'Có lỗi xảy ra. Vui lòng kiểm tra kết nối và thử lại.');
+    if (jsonResponse['success']) {
+      String userName = jsonResponse['userName'] ?? 'N/A';
+      String taxId = jsonResponse['taxId'] ?? 'N/A';
+      String referenceId = jsonResponse['referenceId'] ?? 'N/A';
+      double totalAmount = jsonResponse['totalAmount'] != null
+          ? double.tryParse(jsonResponse['totalAmount'].toString()) ?? 0.0
+          : 0.0;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaymentScreen(
+            userName: userName,
+            taxId: taxId,
+            referenceId: referenceId,
+            totalAmount: totalAmount,
+          ),
+        ),
+      );
+    } else {
+      String errorMsg = jsonResponse['message'] ?? 'Không thể xử lý mã QR. Vui lòng thử lại.';
+      _showErrorDialog('Lỗi', errorMsg);
     }
+  } catch (e) {
+    _showErrorDialog('Lỗi', e.toString());
   }
+}
+
   void _showErrorDialog(String title, String content) {
     showDialog(
       context: context,

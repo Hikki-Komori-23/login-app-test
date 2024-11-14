@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:login_app_2/bloc/login_bloc.dart';
+import 'package:login_app_2/bloc/login_state.dart';
 import 'package:login_app_2/screens/forgotpassword.dart';
 import 'package:login_app_2/screens/forgotusername.dart';
 import 'package:login_app_2/screens/login.dart';
 import 'package:login_app_2/screens/otpverificationpassword.dart';
 import 'package:login_app_2/screens/otpverificationusername.dart';
+import 'package:login_app_2/service/api_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +18,7 @@ void main() {
 
   runApp( 
     BlocProvider(
-       create: (context) => LoginBloc(),
+       create: (context) => LoginBloc(ApiService() as LoginState),
       child: const MyApp(),
     ),
   );
