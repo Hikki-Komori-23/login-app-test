@@ -29,7 +29,8 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
 
   void _generateCaptcha() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-    generatedCaptcha = List.generate(6, (index) => chars[Random().nextInt(chars.length)]).join();
+    generatedCaptcha = List.generate(
+      6, (index) => chars[Random().nextInt(chars.length)]).join();
     setState(() {});
   }
 

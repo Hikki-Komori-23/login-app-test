@@ -1,64 +1,108 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:login_app_2/service/share_prefer_utils.dart';
+import 'package:login_app_2/service/utils.dart';
+import 'package:path_provider/path_provider.dart';
 
-class ApiService {
-  final String baseUrl = 'https://daotaothuedientu.gdt.gov.vn/ICanhanMobile2/api/authentication';
-  final String qrCodeBaseUrl = 'https://daotaothuedientu.gdt.gov.vn/ICanhanMobile2/api';
-  final String taxLookUpbaseUrl = 'https://daotaothuedientu.gdt.gov.vn/ICanhanMobile2/api';
+class AuthInterceptor extends Interceptor {
+  final String platform = "android"; // Replace with platform detection if needed
+  final String client = "store";
 
-  Future<http.Response> postRequest(String endpoint, Map<String, dynamic> body) async {
-    final url = Uri.parse('$baseUrl/$endpoint');
-    return await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
+  @override
+  Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    try {
+      // Set the default content type
+      options.headers['Content-Type'] = 'application/json';
+
+      // Fetch token and user info asynchronously
+      final String? token = await SharePreferUtils.getAccessToken();
+      final userInfo = await SharePreferUtils.getUserInfo();
+
+      // Add authorization header if both token and user info are available
+      if (token != null && userInfo != null) {
+        options.headers['Authorization'] =
+            '${Utils.getCurrentTimeStringRequest()}|${userInfo.userName}|X-AUTH-TOKEN $token|DEVICE_ID ${userInfo.deviceId}';
+      }
+
+      print('Request Headers: ${options.headers}');
+    } catch (e) {
+      print('Error in AuthInterceptor: $e');
+    }
+
+    // Continue the request
+    handler.next(options);
   }
 
-  Future<Map<String, dynamic>> sendQRCode(String qrCode) async {
-    const String apiEndpoint = 'readCtuQrCodeAPI';  
+  /// Gets the local file path for saving logs.
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
 
+  /// Retrieves the log file based on the current weekday.
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/${DateTime.now().weekday}.txt');
+  }
+
+  /// Writes log data to the file.
+  Future<File> writeLog(String logData) async {
+    final file = await _localFile;
+    return file.writeAsString('$logData\n', mode: FileMode.append);
+  }
+}
+
+class ApiService {
+  final Dio dio;
+
+  ApiService()
+      : dio = Dio(BaseOptions(
+          baseUrl: 'https://daotaothuedientu.gdt.gov.vn/ICanhanMobile2/api/',
+          headers: {'Content-Type': 'application/json'},
+        )) {
+    dio.interceptors.add(AuthInterceptor()); // Add the auth interceptor
+  }
+
+  /// General POST request
+  Future<Response> postRequest(String endpoint, Map<String, dynamic> body) async {
     try {
-      final response = await postRequest(
-        apiEndpoint,
-        {'qrCode': qrCode},  
-      );
-
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);  
-      } else {
-        throw Exception('Failed to send QR code, HTTP status: ${response.statusCode}');
-      }
+      print('Sending POST request to $endpoint with body: $body');
+      final response = await dio.post(endpoint, data: body);
+      print('Response from $endpoint: ${response.data}');
+      return response;
     } catch (e) {
+      print('Error during POST request: $e');
+      throw Exception('Error during POST request: $e');
+    }
+  }
+
+  /// Send QR code
+  Future<Map<String, dynamic>> sendQRCode(String qrCode) async {
+    try {
+      final response = await postRequest('readCtuQrCodeAPI', {'qrCode': qrCode});
+      return response.data;
+    } catch (e) {
+      print('Error in sendQRCode: $e');
       throw Exception('Error occurred while sending QR code: $e');
     }
   }
 
+  /// Lookup Tax Code
   Future<Map<String, dynamic>?> lookupTaxCode({
     required String documentType,
     required String documentNumber,
     required String captcha,
   }) async {
-    final url = Uri.parse('$taxLookUpbaseUrl/lookupTinGip');
-
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'document_type': documentType,
-          'document_number': documentNumber,
-          'captcha': captcha,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        return null;
-      }
+      final response = await postRequest('lookupTinGip', {
+        'document_type': documentType,
+        'document_number': documentNumber,
+        'captcha': captcha,
+      });
+      return response.data;
     } catch (e) {
-      throw Exception('Connection error: $e');
+      print('Error in lookupTaxCode: $e');
+      throw Exception('Error occurred while looking up tax code: $e');
     }
   }
 }

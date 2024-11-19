@@ -22,12 +22,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(LoginLoading());
 
     try {
+      // Sử dụng Dio để gửi yêu cầu
       final response = await apiService.postRequest(
         'login',
         event.authentication.toJson(),
       );
 
-      final data = jsonDecode(response.body);
+      // Truy cập dữ liệu phản hồi
+      final data = response.data; // Trong Dio, dữ liệu phản hồi nằm trong `response.data`
       final loginResponse = loginResponseFromJson(data);
 
       await _handleLoginResponse(loginResponse, emit);
@@ -68,12 +70,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(LoginLoading());
 
     try {
+      // Gửi yêu cầu xác minh OTP
       final response = await apiService.postRequest(
         'verify_otp',
         {'otp': event.otp, 'token': temporaryToken},
       );
 
-      final data = jsonDecode(response.body);
+      // Truy cập dữ liệu phản hồi
+      final data = response.data; // Trong Dio, dữ liệu phản hồi nằm trong `response.data`
       if (data['status'] == 'success') {
         final prefs = await SharedPreferences.getInstance();
         await _saveLoginData(prefs, LoginResponse(token: temporaryToken));
