@@ -4,6 +4,7 @@ import 'package:login_app_2/screens/login.dart';
 import 'package:login_app_2/screens/menu.dart';
 import 'package:login_app_2/screens/qrscanner.dart';
 import 'package:login_app_2/screens/taxcodelookup.dart';
+import 'package:login_app_2/screens/taxpayment.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -80,7 +81,9 @@ class HomeScreen extends StatelessWidget {
       child: PageView(
         children: [
           _buildFunctionRow([
-            FunctionButton(icon: Icons.attach_money, label: 'Nộp thuế', onPressed: () {}),
+            FunctionButton(icon: Icons.attach_money, label: 'Nộp thuế', onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const TaxPaymentScreen(taxCode: '')));
+            }),
             FunctionButton(icon: Icons.info_outline, label: 'Tra cứu thông tin quyết toán', onPressed: () {}),
             FunctionButton(icon: Icons.upload_file, label: 'Nộp thuế thay', onPressed: () {}),
           ]),

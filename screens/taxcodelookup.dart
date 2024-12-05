@@ -14,7 +14,7 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
   final ApiService apiService = ApiService();
   final _documentNumberController = TextEditingController();
   final _captchaController = TextEditingController();
-  
+
   String? taxCodeResult;
   String? taxpayerName;
   bool isLoading = false;
@@ -53,7 +53,8 @@ class _TaxCodeLookupScreenState extends State<TaxCodeLookUpScreen> {
       final data = await apiService.lookupTaxCode(
         documentType: selectedDocumentType ?? '',
         documentNumber: _documentNumberController.text,
-        captcha: _captchaController.text,
+        captcha: _captchaController.text, 
+        showLoading: (showLoading) {},
       );
 
       setState(() {

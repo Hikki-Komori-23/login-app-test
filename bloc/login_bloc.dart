@@ -24,8 +24,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     try {
       // Sử dụng Dio để gửi yêu cầu
       final response = await apiService.postRequest(
-        'login',
-        event.authentication.toJson(),
+        '/login',
+        event.authentication.toJson(), showLoading: (showLoading) {},
       );
 
       // Truy cập dữ liệu phản hồi
@@ -73,7 +73,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       // Gửi yêu cầu xác minh OTP
       final response = await apiService.postRequest(
         'verify_otp',
-        {'otp': event.otp, 'token': temporaryToken},
+        {'otp': event.otp, 'token': temporaryToken}, 
+        showLoading: (showLoading) {},
       );
 
       // Truy cập dữ liệu phản hồi

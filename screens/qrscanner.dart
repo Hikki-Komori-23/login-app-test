@@ -49,37 +49,37 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     }
   }
   
-Future<void> _sendQRCodeToAPI(String qrCode) async {
-  try {
-    final jsonResponse = await _apiService.sendQRCode(qrCode); 
+  Future<void> _sendQRCodeToAPI(String qrCode) async {
+    try {
+      final jsonResponse = await _apiService.sendQRCode(qrCode, showLoading: (showLoading) {}); 
 
-    if (jsonResponse['success']) {
-      String userName = jsonResponse['userName'] ?? 'N/A';
-      String taxId = jsonResponse['taxId'] ?? 'N/A';
-      String referenceId = jsonResponse['referenceId'] ?? 'N/A';
-      double totalAmount = jsonResponse['totalAmount'] != null
-          ? double.tryParse(jsonResponse['totalAmount'].toString()) ?? 0.0
-          : 0.0;
+      if (jsonResponse['success']) {
+        String userName = jsonResponse['userName'] ?? 'N/A';
+        String taxId = jsonResponse['taxId'] ?? 'N/A';
+        String referenceId = jsonResponse['referenceId'] ?? 'N/A';
+        double totalAmount = jsonResponse['totalAmount'] != null
+            ? double.tryParse(jsonResponse['totalAmount'].toString()) ?? 0.0
+            : 0.0;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PaymentScreen(
-            userName: userName,
-            taxId: taxId,
-            referenceId: referenceId,
-            totalAmount: totalAmount,
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentScreen(
+              userName: userName,
+              taxId: taxId,
+              referenceId: referenceId,
+              totalAmount: totalAmount,
+            ),
           ),
-        ),
-      );
-    } else {
-      String errorMsg = jsonResponse['message'] ?? 'Không thể xử lý mã QR. Vui lòng thử lại.';
-      _showErrorDialog('Lỗi', errorMsg);
+        );
+      } else {
+        String errorMsg = jsonResponse['message'] ?? 'Không thể xử lý mã QR. Vui lòng thử lại.';
+        _showErrorDialog('Lỗi', errorMsg);
+      }
+    } catch (e) {
+      _showErrorDialog('Lỗi', e.toString());
     }
-  } catch (e) {
-    _showErrorDialog('Lỗi', e.toString());
   }
-}
 
   void _showErrorDialog(String title, String content) {
     showDialog(

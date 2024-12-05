@@ -5,7 +5,7 @@ import 'package:login_app_2/bloc/login_bloc.dart';
 import 'package:login_app_2/bloc/login_state.dart';
 import 'package:login_app_2/screens/forgotpassword.dart';
 import 'package:login_app_2/screens/forgotusername.dart';
-import 'package:login_app_2/screens/login.dart';
+import 'package:login_app_2/screens/home.dart';
 import 'package:login_app_2/screens/otpverificationpassword.dart';
 import 'package:login_app_2/screens/otpverificationusername.dart';
 import 'package:login_app_2/service/api_service.dart';
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(),
+      home: const HomeScreen(),
       routes: {
         '/forgot-username': (context) => const ForgotUsernameScreen(),
         '/forgot-password': (context) => const ForgotPasswordScreen(),

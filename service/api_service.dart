@@ -64,22 +64,40 @@ class ApiService {
   }
 
   /// General POST request
-  Future<Response> postRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Response> postRequest(
+    String endpoint,
+    Map<String, dynamic> body, {
+    required Function(bool) showLoading,
+  }) async {
     try {
+      // Hiển thị loading
+      showLoading(true);
+
       print('Sending POST request to $endpoint with body: $body');
       final response = await dio.post(endpoint, data: body);
+
       print('Response from $endpoint: ${response.data}');
       return response;
     } catch (e) {
       print('Error during POST request: $e');
       throw Exception('Error during POST request: $e');
+    } finally {
+      // Đóng loading dù thành công hay thất bại
+      showLoading(false);
     }
   }
 
   /// Send QR code
-  Future<Map<String, dynamic>> sendQRCode(String qrCode) async {
+  Future<Map<String, dynamic>> sendQRCode(
+    String qrCode, {
+    required Function(bool) showLoading,
+  }) async {
     try {
-      final response = await postRequest('readCtuQrCodeAPI', {'qrCode': qrCode});
+      final response = await postRequest(
+        'readCtuQrCodeAPI',
+        {'qrCode': qrCode},
+        showLoading: showLoading,
+      );
       return response.data;
     } catch (e) {
       print('Error in sendQRCode: $e');
@@ -92,13 +110,18 @@ class ApiService {
     required String documentType,
     required String documentNumber,
     required String captcha,
+    required Function(bool) showLoading,
   }) async {
     try {
-      final response = await postRequest('lookupTinGip', {
-        'document_type': documentType,
-        'document_number': documentNumber,
-        'captcha': captcha,
-      });
+      final response = await postRequest(
+        'lookupTinGip',
+        {
+          'document_type': documentType,
+          'document_number': documentNumber,
+          'captcha': captcha,
+        },
+        showLoading: showLoading,
+      );
       return response.data;
     } catch (e) {
       print('Error in lookupTaxCode: $e');
