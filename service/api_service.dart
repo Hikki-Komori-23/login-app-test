@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:login_app_2/service/share_prefer_utils.dart';
-import 'package:login_app_2/service/utils.dart';
 import 'package:path_provider/path_provider.dart';
+import 'share_prefer_utils.dart';
+import 'utils.dart';
 
 class AuthInterceptor extends Interceptor {
   final String platform = "android"; // Replace with platform detection if needed
@@ -70,7 +70,7 @@ class ApiService {
     required Function(bool) showLoading,
   }) async {
     try {
-      // Hiển thị loading
+      // Show loading
       showLoading(true);
 
       print('Sending POST request to $endpoint with body: $body');
@@ -82,7 +82,7 @@ class ApiService {
       print('Error during POST request: $e');
       throw Exception('Error during POST request: $e');
     } finally {
-      // Đóng loading dù thành công hay thất bại
+      // Hide loading whether successful or failed
       showLoading(false);
     }
   }
@@ -126,6 +126,39 @@ class ApiService {
     } catch (e) {
       print('Error in lookupTaxCode: $e');
       throw Exception('Error occurred while looking up tax code: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchUserProfile({
+    required Function(bool) showLoading,
+  }) async {
+    try {
+      final response = await postRequest(
+        'dmucNHTaxPayment',
+        {},
+        showLoading: showLoading,
+      );
+      return response.data;
+    } catch (e) {
+      print('Error in fetchUserProfile: $e');
+      throw Exception('Error occurred while fetching user profile: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> submitPaymentDetails({
+    required Map<String, dynamic> paymentData,
+    required Function(bool) showLoading,
+  }) async {
+    try {
+      final response = await postRequest(
+        'luuThongTin',
+        paymentData,
+        showLoading: showLoading,
+      );
+      return response.data;
+    } catch (e) {
+      print('Error in submitPaymentDetails: $e');
+      throw Exception('Error occurred while submitting payment details: $e');
     }
   }
 }
