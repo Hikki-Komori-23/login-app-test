@@ -82,7 +82,7 @@ class HomeScreen extends StatelessWidget {
         children: [
           _buildFunctionRow([
             FunctionButton(icon: Icons.attach_money, label: 'Nộp thuế', onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const TaxPaymentScreen(taxCode: '')));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const TaxPaymentScreen(userName: '', taxId: '', referenceId: '', totalAmount: 9010000)));
             }),
             FunctionButton(icon: Icons.info_outline, label: 'Tra cứu thông tin quyết toán', onPressed: () {}),
             FunctionButton(icon: Icons.upload_file, label: 'Nộp thuế thay', onPressed: () {}),
